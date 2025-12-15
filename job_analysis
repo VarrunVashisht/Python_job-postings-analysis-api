@@ -1,0 +1,91 @@
+import requests
+import pandas as pd
+import json
+
+api_url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DA0321EN-SkillsNetwork/labs/module%201/Accessing%20Data%20Using%20APIs/jobs.json"
+response = requests.get(api_url)
+data = response.json()
+df = pd.DataFrame(data)
+
+# Fetching the names of columns
+# print(df.columns)
+
+# Making a function to Count how many jobs mention a Specific technology (eg. Python)
+def get_number_of_jobs_T(technology):
+    number_of_jobs =0
+    for job in data:
+        if technology.lower() in job.get('Key Skills','').lower():
+            number_of_jobs += 1
+    return technology, number_of_jobs
+
+# Making a function to Count Jobs by Location
+def get_number_of_jobs_L(location):
+    number_of_jobs =0
+    for job in data:
+        if location.lower() in job.get('Location','').lower():
+            number_of_jobs += 1
+    return location, number_of_jobs
+
+
+# Counting by Technologies
+print("TECHNOLOGY WISE JOB COUNT")
+print("-" * 30)
+technologies = ["C", "C#", "C++", "Java", "JavaScript", "Python", "Scala", "Oracle", "SQL Server", "MySQL Server", "PostgreSQL", "MongoDB"]
+for technology in technologies:
+     print(get_number_of_jobs_T(technology)) # By technology
+
+print("\n\n")  # two blank lines
+
+# Counting by Locations
+print("LOCATION WISE JOB COUNT")
+print("-" * 30)
+locations = ["Los Angeles", "New York", "San Francisco", "Washington DC", "Seattle", "Austin", "Detroit"]
+for location in locations:
+    print(get_number_of_jobs_L(location)) # By location
+
+
+# Store Results in Excel
+from openpyxl import Workbook
+wb = Workbook()
+ws = wb.active
+ws.title = "Job Postings"
+
+# Technology section
+ws_tech = wb.active
+ws_tech.title = "Technology"
+
+ws_tech.append(["Technology", "Number of Job Postings"])
+for tech in technologies:
+    ws_tech.append(list(get_number_of_jobs_T(tech)))
+
+# Location section
+ws_loc = wb.create_sheet(title="Location")
+ws_loc.append(["Location", "Number of Job Postings"])
+for city in locations:
+    ws_loc.append(list(get_number_of_jobs_L(city)))
+
+wb.save("job-postings.xlsx")
+
+
+
+''' Data will append on a same Working Sheet
+# Technology section
+ws.append(["Technology", "Number of Job Postings"])
+for tech in technologies:
+    tech_name, count = get_number_of_jobs_T(tech)
+    ws.append([tech_name, count])
+
+# Empty rows for clarity
+ws.append([])
+ws.append([])
+
+# Location section
+ws.append(["Location", "Number of Job Postings"])
+for city in locations:
+    location_name, count = get_number_of_jobs_L(city)
+    ws.append([location_name, count])
+'''
+wb.save("job-postings.xlsx")
+
+
+
